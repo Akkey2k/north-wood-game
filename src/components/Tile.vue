@@ -1,5 +1,5 @@
 <template>
-  <div class="tile" :style="tileStyle"></div>
+  <span class="tile" :style="tileStyle" :class="cfg.type"></span>
 </template>
 
 <script>
@@ -32,10 +32,20 @@ export default {
 .tile {
   position: absolute;
   background-color: #2b2b2b;
-  background-image: url("~@/assets/tileGrass1.png");
+  transition: .2s;
+  outline-offset: -1px;
   background-repeat: no-repeat;
   background-size: 64px;
-  transition: .2s;
+  overflow: hidden;
+}
+.tile.water{
+  background-color: #00a6ff;
+}
+.tile.sand{
+  background-image: url("~@/assets/tileSand1.png");
+}
+.tile.forest{
+  background-image: url("~@/assets/tileGrass1.png");
 }
 .tile:hover {
   outline: 3px #2b2b2b solid;

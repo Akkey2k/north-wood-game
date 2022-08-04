@@ -4,29 +4,28 @@
     @mousedown="handleDnD($event, 'start')"
     @mousemove="handleDrag($event)"
     @mouseup="handleDnD($event, 'stop')"
-  >
-    <Tile
-      v-for="(item, index) in gridCfg" :key="index"
-      :cfg = item
-      :tileSize = tileSize
-    />
+    @wheel="handleZoom($event)"
+    >
+    <Tile v-for="(item, index) in gridCfg" :key="index" :cfg=item :tileSize=tileSize />
   </div>
 </template>
 
 <script>
 import Tile from './Tile.vue';
+import { createNoise2D } from 'simplex-noise';
 
 export default {
   name: 'Map',
   data() {
     return {
-      mapWidth: 20,
-      mapHeight: 20,
+      mapWidth: 50,
+      mapHeight: 50,
       mapStyle: {
         height: 0,
         width: 0,
         left: 0,
         top: 0,
+        scale: 1
       },
       gridCfg: [],
       tileSize: 64,
@@ -48,12 +47,45 @@ export default {
       this.mapStyle.height = `${(this.mapHeight * this.tileSize)}px`;
     },
     generateGrid() {
+      const gen = new createNoise2D();
+      function noise(nx, ny) {
+        // Rescale from -1.0:+1.0 to 0.0:1.0
+        return gen(nx, ny) / 2 + 0.5;
+      }
+
+      const noiseArray = [];
+
+      for (let y = 0; y < this.mapHeight; y++) {
+        noiseArray[y] = [];
+        for (let x = 0; x < this.mapWidth; x++) {
+          let nx = x / this.mapWidth - 0.5,
+              ny = y / this.mapHeight - 0.5;
+
+          noiseArray[y][x] = noise(nx, ny);
+        }
+      }
+      console.table(noiseArray);
+
       const cfg = [];
+
+      function getBiome(e) {
+        // if (e < 0.1) return "water";
+        // else if (e < 0.2) return "sand";
+        // else if (e < 0.3) return "forest";
+        // else if (e < 0.5) return "jungle";
+        // else if (e < 0.7) return "savannah";
+        // else if (e < 0.9) return "desert";
+        // else return "show";
+
+        if (e < 0.3) return "sand";
+        else if (e < 0.6) return "forest";
+        else return "water";
+      }
 
       for (let i = 0; i < this.mapWidth; i += 1) {
         for (let j = 0; j < this.mapHeight; j += 1) {
           cfg.push({
-            type: 'herb',
+            type: getBiome(noiseArray[i][j]),
             x: i,
             y: j,
           });
@@ -61,6 +93,7 @@ export default {
       }
 
       this.gridCfg = cfg;
+      console.table(this.gridCfg);
     },
     handleDnD(e, state) {
       const isEnabled = state === 'start';
@@ -78,6 +111,22 @@ export default {
       if (this.isEnabledDnD) {
         this.mapStyle.left = `${this.positionDnD.offsetX + (e.clientX - this.positionDnD.x)}px`;
         this.mapStyle.top = `${this.positionDnD.offsetY + (e.clientY - this.positionDnD.y)}px`;
+      }
+    },
+    handleZoom(e) {
+      e = e || window.event;
+      e.preventDefault ? e.preventDefault() : (e.returnValue = false);
+
+      var delta = e.deltaY || e.detail || e.wheelDelta;
+      
+      if (delta < 0) {
+        if(this.mapStyle.scale <= 2.5) {
+          this.mapStyle.scale += 0.1;
+        }
+      } else {
+        if(this.mapStyle.scale >= 1) {
+          this.mapStyle.scale -= 0.1;
+        }
       }
     },
   },
