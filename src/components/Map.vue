@@ -1,12 +1,16 @@
 <template>
-  <div class="map-grid"
-    :style="mapStyle"
-    @mousedown="handleDnD($event, 'start')"
-    @mousemove="handleDrag($event)"
-    @mouseup="handleDnD($event, 'stop')"
-    @wheel="handleZoom($event)"
-    >
-    <Tile v-for="(item, index) in gridCfg" :key="index" :cfg=item :tileSize=tileSize />
+  <div class="map-wrapper"
+    :style="mapWrapperStyle"
+  >
+      <div class="map-grid"
+      :style="mapStyle"
+      @mousedown="handleDnD($event, 'start')"
+      @mousemove="handleDrag($event)"
+      @mouseup="handleDnD($event, 'stop')"
+      @wheel="handleZoom($event)"
+      >
+      <Tile v-for="(item, index) in gridCfg" :key="index" :cfg=item :tileSize=tileSize />
+    </div>
   </div>
 </template>
 
@@ -20,6 +24,10 @@ export default {
     return {
       mapWidth: 50,
       mapHeight: 50,
+      mapWrapperStyle: {
+        height: 0,
+        width: 0,
+      },
       mapStyle: {
         height: 0,
         width: 0,
@@ -45,6 +53,9 @@ export default {
     calcSize() {
       this.mapStyle.width = `${(this.mapWidth * this.tileSize)}px`;
       this.mapStyle.height = `${(this.mapHeight * this.tileSize)}px`;
+
+      this.mapWrapperStyle.width = `${(this.mapWidth * this.tileSize)}px`;
+      this.mapWrapperStyle.height = `${(this.mapHeight * this.tileSize)}px`;
     },
     generateGrid() {
       const gen = new createNoise2D();
@@ -138,6 +149,13 @@ export default {
 </script>
 
 <style>
+.map-wrapper {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+}
+
 .map-grid {
   position: absolute;
   transform: rotateX(65deg) rotateZ(-55deg);
